@@ -1,0 +1,48 @@
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
+
+# Python and local tooling
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+.coverage
+htmlcov/
+.cache/
+.DS_Store
+.idea/
+.vscode/
+celerybeat-schedule
+*.log
+
+# Generated packages, local databases, and database exports
+build/
+dist/
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+*.sql
+
+# The video production project is a local companion, not application source.
+demo-video/
+node_modules/
+
+# Local planning notes retained outside the public application package
+/Changes 3.0.md
+/changes 2.0.md
+/IMPLEMENTATION_PROGRESS.md
+/Lead Scoring Project Plan.md
+/WALKTHROUGH_V3_PLAN.md
+
+# Private database backups and saved queue state
+/database/

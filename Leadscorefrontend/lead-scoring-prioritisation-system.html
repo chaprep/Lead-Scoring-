@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lead Scoring &amp; Prioritisation System</title>
+  <style>
+    /* BMW M design-system token contract */
+    :root {
+      --bg: #f7f8fa;
+      --surface: #ffffff;
+      --surface-warm: #eef3f8;
+      --fg: #111827;
+      --fg-2: #334155;
+      --muted: #64748b;
+      --meta: #0066b1;
+      --border: #d7dee8;
+      --border-soft: #edf1f6;
+      --accent: #0066b1;
+      --accent-on: #ffffff;
+      --accent-hover: color-mix(in oklab, var(--accent), black 8%);
+      --accent-active: color-mix(in oklab, var(--accent), black 14%);
+      --success: #16a34a;
+      --warn: #f59e0b;
+      --danger: #e4002b;
+      --font-display: "BMWTypeNext", "Helvetica Neue", Arial, sans-serif;
+      --font-body: "BMWTypeNext", "Helvetica Neue", Arial, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, Menlo, monospace;
+      --text-xs: 12px;
+      --text-sm: 14px;
+      --text-base: 16px;
+      --text-lg: 18px;
+      --text-xl: 24px;
+      --text-2xl: 36px;
+      --text-3xl: 56px;
+      --text-4xl: 78px;
+      --leading-body: 1.5;
+      --leading-tight: 1.02;
+      --tracking-display: -0.025em;
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-12: 48px;
+      --section-y-desktop: 104px;
+      --section-y-tablet: 76px;
+      --section-y-phone: 52px;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 14px;
+      --radius-pill: 9999px;
+      --elev-flat: none;
+      --elev-ring: 0 0 0 1px var(--border);
+      --elev-raised: 0 22px 56px rgba(17, 24, 39, 0.12);
+      --focus-ring: 0 0 0 4px rgba(0, 102, 177, 0.24);
+      --motion-fast: 130ms;
+      --motion-base: 220ms;
+      --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+      --container-max: 1220px;
+      --container-gutter-desktop: 40px;
+      --container-gutter-tablet: 28px;
+      --container-gutter-phone: 18px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 400 var(--text-base)/var(--leading-body) var(--font-body); }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; box-shadow: var(--focus-ring); }
+    .shell { width: min(100% - 80px, var(--container-max)); margin-inline: auto; }
+    .topbar { height: 68px; background: var(--surface); border-bottom: 1px solid var(--border-soft); }
+    .topbar-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; }
+    .brand { display: flex; align-items: center; gap: 11px; color: var(--fg); font-weight: 700; letter-spacing: -.02em; text-decoration: none; }
+    .brand-mark { width: 28px; height: 28px; border: 1px solid var(--border); display: grid; place-items: center; font: 700 11px/1 var(--font-mono); letter-spacing: -.08em; }
+    .brand-name { font-size: 14px; }
+    .top-meta { font-size: var(--text-xs); color: var(--muted); }
+    main { padding-bottom: 72px; }
+    .intro { padding: 58px 0 36px; }
+    .eyebrow { margin: 0 0 13px; color: var(--meta); font: 700 11px/1.3 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 14px; font: 400 clamp(38px, 5vw, 56px)/1.08 var(--font-display); letter-spacing: -.045em; }
+    .intro-copy { max-width: 680px; color: var(--fg-2); font-size: 17px; margin: 0; }
+    .jump-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 22px; color: var(--fg); font-size: 13px; font-weight: 700; text-decoration: none; border-bottom: 1px solid var(--fg); padding-bottom: 3px; }
+    .jump-link span { font-size: 17px; }
+    .workspace { scroll-margin-top: 22px; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+    .section-heading h2 { margin: 0; font-size: 22px; line-height: 1.25; letter-spacing: -.025em; font-weight: 600; }
+    .section-heading p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+    .step-label { color: var(--muted); font: 11px/1.4 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; }
+    .intake-grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(330px, .92fr); gap: 18px; align-items: stretch; }
+    .panel { background: var(--surface); border: 1px solid var(--border); }
+    .panel-pad { padding: 24px; }
+    .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 17px; border-bottom: 1px solid var(--border-soft); margin-bottom: 19px; }
+    .panel-title { font-size: 15px; line-height: 1.35; font-weight: 700; margin: 0; }
+    .panel-note { margin: 4px 0 0; font-size: 12px; color: var(--muted); }
+    .tiny-tag { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .tiny-tag:before { content: ""; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
+    .field { min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    .field label { display: block; margin-bottom: 6px; color: var(--fg-2); font-size: 12px; font-weight: 600; }
+    .required { color: var(--muted); font-weight: 400; }
+    input, select, textarea { width: 100%; min-height: 42px; padding: 9px 11px; color: var(--fg); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; }
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+    select:invalid { color: var(--muted); }
+    textarea { min-height: 70px; resize: vertical; }
+    .helper { color: var(--muted); font-size: 11px; margin: 5px 0 0; line-height: 1.4; }
+    .fit-note { margin-top: 16px; padding: 10px 12px; background: var(--surface-warm); color: var(--fg-2); font-size: 12px; display: flex; gap: 9px; align-items: flex-start; }
+    .fit-note b { color: var(--accent); font: 700 11px/1.5 var(--font-mono); }
+    .segmented { display: inline-flex; background: var(--border-soft); padding: 3px; border-radius: var(--radius-sm); }
+    .segmented button { min-height: 34px; border: 0; border-radius: 3px; padding: 0 12px; background: transparent; color: var(--muted); font-size: 12px; }
+    .segmented button[aria-pressed="true"] { background: var(--surface); color: var(--fg); box-shadow: 0 1px 3px rgba(17,24,39,.12); font-weight: 600; }
+    .prospect-form { display: grid; gap: 13px; }
+    .upload-zone { position: relative; min-height: 158px; border: 1px dashed var(--border); border-radius: var(--radius-sm); display: grid; align-content: center; justify-items: center; text-align: center; padding: 20px; background: var(--bg); transition: background var(--motion-fast), border-color var(--motion-fast); }
+    .upload-zone.dragging { border-color: var(--accent); background: color-mix(in oklab, var(--accent) 6%, var(--surface)); }
+    .upload-symbol { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--border); color: var(--fg-2); font-size: 17px; margin-bottom: 8px; }
+    .upload-zone strong { font-size: 13px; }
+    .upload-zone p { color: var(--muted); font-size: 11px; margin: 3px 0 10px; }
+    .upload-zone input { position: absolute; inset: 0; height: 100%; opacity: 0; cursor: pointer; }
+    .file-button { pointer-events: none; border: 1px solid var(--border); background: var(--surface); padding: 6px 10px; font-size: 11px; color: var(--fg-2); }
+    .csv-summary { display: none; border: 1px solid var(--border-soft); padding: 12px; background: var(--bg); }
+    .csv-summary.visible { display: block; }
+    .csv-topline { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; font-weight: 600; }
+    .csv-metrics { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; color: var(--muted); font-size: 11px; }
+    .csv-metrics strong { color: var(--fg); }
+    .csv-issues { margin: 8px 0 0; padding-left: 17px; color: color-mix(in oklab, var(--warn) 78%, var(--fg)); font-size: 11px; }
+    .csv-remove-row { min-height: 26px; }
+    .prospect-list { display: grid; gap: 7px; }
+    .prospect-chip { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 1px solid var(--border-soft); font-size: 12px; }
+    .prospect-chip small { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .remove-row { border: 0; background: transparent; color: var(--muted); font-size: 17px; min-width: 28px; min-height: 28px; }
+    .form-actions { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-top: auto; padding-top: 16px; }
+    .form-error { color: var(--danger); font-size: 11px; min-height: 16px; }
+    .btn { min-height: 44px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--fg); padding: 0 15px; font-size: 12px; font-weight: 650; transition: background var(--motion-fast), border-color var(--motion-fast), transform var(--motion-fast); }
+    .btn:hover:not(:disabled) { background: var(--surface-warm); border-color: var(--muted); }
+    .btn:active:not(:disabled) { transform: translateY(1px); }
+    .btn-primary { color: var(--accent-on); background: var(--accent); border-color: var(--accent); }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+    .btn-primary:active:not(:disabled) { background: var(--accent-active); }
+    .btn:disabled { cursor: not-allowed; background: var(--border-soft); color: var(--muted); border-color: var(--border-soft); }
+    .btn-text { border: 0; background: transparent; color: var(--accent); padding-inline: 4px; min-height: 36px; }
+    .btn-text:hover:not(:disabled) { background: var(--surface-warm); }
+    .processing-section, .results-section { margin-top: 60px; }
+    [hidden] { display: none !important; }
+    .processing-panel { padding: 22px 24px 0; }
+    .processing-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+    .processing-actions { display: flex; align-items: center; gap: 12px; }
+    .processing-top h2 { margin: 0; font-size: 19px; }
+    .processing-top p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .live-state { display: flex; align-items: center; gap: 7px; color: var(--fg-2); font: 11px var(--font-mono); }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 3px color-mix(in oklab, var(--success) 12%, white); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(32,166,101,0); } }
+    .stage-list { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); margin-top: 24px; padding: 0 0 20px; gap: 0; }
+    .stage { position: relative; padding: 0 9px 0 0; color: var(--muted); font-size: 10px; line-height: 1.3; }
+    .stage:before { content: ""; display: block; height: 3px; background: var(--border-soft); margin-bottom: 9px; }
+    .stage.done:before { background: var(--accent); }
+    .stage.active:before { background: var(--accent); opacity: .55; }
+    .stage.done, .stage.active { color: var(--fg-2); }
+    .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft); }
+    .metric { padding: 14px 16px; border-right: 1px solid var(--border-soft); }
+    .metric:nth-child(4n) { border-right: 0; }
+    .metric:nth-child(n+5) { border-top: 1px solid var(--border-soft); }
+    .metric-value { font: 600 21px/1.1 var(--font-display); letter-spacing: -.04em; }
+    .metric-label { color: var(--muted); font-size: 11px; margin-top: 4px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { padding: 11px 14px; color: var(--muted); background: var(--bg); font: 600 10px/1.4 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+    td { padding: 12px 14px; border-top: 1px solid var(--border-soft); font-size: 12px; vertical-align: middle; }
+    .person-cell { font-weight: 600; }
+    .person-cell small { display: block; color: var(--muted); font-weight: 400; font-size: 11px; }
+    .status { display: inline-flex; align-items: center; gap: 6px; color: var(--fg-2); font-size: 11px; white-space: nowrap; }
+    .status:before { content: ""; width: 6px; height: 6px; background: var(--muted); border-radius: 50%; }
+    .status.processing:before { background: var(--accent); animation: pulse 1.5s infinite; }
+    .status.review:before { background: var(--warn); }
+    .status.complete:before { background: var(--success); }
+    .status.failed:before { background: var(--danger); }
+    .status.rejected:before { background: var(--danger); }
+    .status.queued:before { background: var(--muted); }
+    .row-action { min-height: 32px; font-size: 11px; padding: 0 9px; }
+    .failure-callout { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 12px 14px 16px; padding: 11px 12px; background: color-mix(in oklab, var(--danger) 4%, var(--surface)); border: 1px solid color-mix(in oklab, var(--danger) 18%, var(--surface)); }
+    .failure-callout p { margin: 0; color: color-mix(in oklab, var(--danger) 60%, var(--fg)); font-size: 11px; }
+    .failure-callout strong { display: block; font-size: 12px; }
+    .icp-summary { margin: 18px 0 0; padding: 11px 12px; display: flex; align-items: baseline; gap: 12px; background: var(--surface-warm); border: 1px solid var(--border-soft); }
+    .icp-summary strong { flex: 0 0 auto; font-size: 11px; }
+    .icp-summary span { color: var(--fg-2); font-size: 11px; }
+    .results-header { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 17px; }
+    .results-header h2 { margin: 0; font-size: 22px; letter-spacing: -.025em; }
+    .results-header p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+    .tabs { display: flex; align-items: center; gap: 24px; border-bottom: 1px solid var(--border); padding: 0 18px; background: var(--surface); }
+    .tab { position: relative; min-height: 48px; padding: 0 2px; border: 0; background: transparent; color: var(--muted); font-size: 12px; }
+    .tab[aria-selected="true"] { color: var(--fg); font-weight: 700; }
+    .tab[aria-selected="true"]:after { content: ""; position: absolute; height: 2px; bottom: -1px; left: 0; right: 0; background: var(--accent); }
+    .count { margin-left: 5px; color: inherit; font: 11px var(--font-mono); }
+    .results-content { background: var(--surface); border: 1px solid var(--border); border-top: 0; }
+    .tab-toolbar { min-height: 56px; padding: 10px 17px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border-soft); }
+    .filter-group { display: flex; align-items: center; gap: 5px; }
+    .filter { min-height: 31px; border: 1px solid transparent; background: transparent; color: var(--muted); padding: 0 10px; border-radius: var(--radius-sm); font-size: 11px; }
+    .filter[aria-pressed="true"] { color: var(--fg); background: var(--surface-warm); border-color: var(--border-soft); font-weight: 650; }
+    .toolbar-actions { display: flex; gap: 8px; }
+    .toolbar-actions .btn { min-height: 34px; padding-inline: 10px; font-size: 11px; }
+    .prospect-cards { display: grid; }
+    .result-card { display: grid; grid-template-columns: minmax(190px, 1.1fr) minmax(100px, .55fr) minmax(210px, 1.3fr) auto; gap: 18px; align-items: center; padding: 17px 19px; border-bottom: 1px solid var(--border-soft); }
+    .result-card:last-child { border-bottom: 0; }
+    .result-name { margin: 0 0 3px; font-size: 14px; font-weight: 650; }
+    .result-sub { margin: 0; color: var(--muted); font-size: 11px; }
+    .priority-wrap { display: grid; gap: 5px; justify-items: start; }
+    .priority { display: inline-flex; align-items: center; gap: 6px; padding: 3px 7px; color: color-mix(in oklab, var(--success) 70%, var(--fg)); background: color-mix(in oklab, var(--success) 10%, var(--surface)); font: 700 10px/1.3 var(--font-mono); }
+    .priority.p2 { color: color-mix(in oklab, var(--warn) 72%, var(--fg)); background: color-mix(in oklab, var(--warn) 14%, var(--surface)); }
+    .priority.p3 { color: var(--fg-2); background: var(--border-soft); }
+    .fit { color: var(--fg-2); font-size: 10px; }
+    .why { color: var(--fg-2); font-size: 11px; line-height: 1.45; }
+    .signal-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+    .signal { padding: 2px 6px; color: var(--fg-2); background: var(--border-soft); font-size: 9px; white-space: nowrap; }
+    .detail-link { min-height: 38px; white-space: nowrap; font-size: 11px; padding: 0 11px; }
+    .review-banner { margin: 15px 17px 3px; display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 12px; background: var(--bg); border: 1px solid var(--border-soft); }
+    .review-banner strong { font-size: 12px; }
+    .review-banner p { margin: 2px 0 0; font-size: 11px; color: var(--muted); }
+    .review-list { padding: 0 17px; }
+    .review-card { padding: 17px 0; display: grid; grid-template-columns: minmax(160px, .9fr) minmax(200px, 1.2fr) minmax(170px, 1fr) auto; gap: 17px; align-items: start; border-bottom: 1px solid var(--border-soft); }
+    .review-card:last-child { border-bottom: 0; }
+    .review-reason { color: var(--fg-2); font-size: 11px; }
+    .review-reason strong { display: block; margin-bottom: 3px; color: var(--fg); font-size: 11px; }
+    .confidence { color: var(--muted); font-size: 10px; }
+    .confidence b { color: var(--fg-2); font: 600 11px var(--font-mono); }
+    .review-actions { display: flex; flex-direction: column; gap: 6px; }
+    .review-actions .btn { min-height: 34px; font-size: 10px; padding: 0 10px; white-space: nowrap; }
+    .reject-action { color: color-mix(in oklab, var(--danger) 58%, var(--fg)); border-color: color-mix(in oklab, var(--danger) 18%, var(--surface)); }
+    .reject-action:hover:not(:disabled) { background: color-mix(in oklab, var(--danger) 5%, var(--surface)); }
+    .flow-state { margin-top: 8px; font: 10px/1.5 var(--font-mono); color: var(--accent); }
+    .empty-state { padding: 42px 18px; text-align: center; color: var(--muted); font-size: 12px; }
+    .empty-state strong { display: block; color: var(--fg-2); font-size: 13px; margin-bottom: 3px; }
+    .priority-filter { display: flex; gap: 5px; }
+    .error-row { padding: 14px 18px; background: color-mix(in oklab, var(--danger) 3%, var(--surface)); border-top: 1px solid color-mix(in oklab, var(--danger) 18%, var(--surface)); display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 11px; }
+    .error-row strong { color: color-mix(in oklab, var(--danger) 58%, var(--fg)); }
+    .drawer-backdrop { position: fixed; inset: 0; z-index: 20; background: rgba(15,23,42,.36); display: flex; justify-content: flex-end; }
+    .drawer { width: min(680px, 100%); height: 100%; overflow-y: auto; background: var(--bg); box-shadow: var(--elev-raised); animation: slide-in 220ms var(--ease-standard); }
+    @keyframes slide-in { from { transform: translateX(28px); opacity: .7; } to { transform: translateX(0); opacity: 1; } }
+    .drawer-head { position: sticky; z-index: 2; top: 0; padding: 18px 23px; display: flex; align-items: flex-start; justify-content: space-between; background: rgba(247,248,250,.96); border-bottom: 1px solid var(--border); backdrop-filter: blur(8px); }
+    .drawer-head h2 { margin: 0; font-size: 18px; }
+    .drawer-head p { margin: 3px 0 0; color: var(--muted); font-size: 11px; }
+    .icon-btn { width: 38px; height: 38px; border: 1px solid var(--border); background: var(--surface); color: var(--fg-2); font-size: 19px; }
+    .drawer-content { padding: 20px 23px 50px; }
+    .pipeline-track { display: grid; grid-template-columns: repeat(5, 1fr); margin-bottom: 20px; }
+    .pipe-step { padding: 8px; border-top: 3px solid var(--border-soft); color: var(--muted); font-size: 9px; }
+    .pipe-step.done { border-color: var(--accent); color: var(--fg-2); }
+    .pipe-step.current { border-color: var(--warn); color: var(--fg); }
+    .detail-block { background: var(--surface); border: 1px solid var(--border); margin-bottom: 11px; }
+    .detail-block summary { list-style: none; cursor: pointer; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 650; }
+    .detail-block summary::-webkit-details-marker { display: none; }
+    .detail-block summary:after { content: "+"; color: var(--muted); font-size: 16px; font-weight: 400; }
+    .detail-block[open] summary:after { content: "−"; }
+    .detail-body { padding: 0 14px 14px; color: var(--fg-2); font-size: 11px; }
+    .kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
+    .kv { padding-top: 7px; border-top: 1px solid var(--border-soft); min-width: 0; }
+    .kv span { display: block; color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: .05em; }
+    .kv b { display: block; margin-top: 2px; overflow-wrap: anywhere; font-weight: 550; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: 12px; background: var(--bg); border: 1px solid var(--border-soft); color: var(--fg-2); font: 10px/1.55 var(--font-mono); }
+    .toast { position: fixed; z-index: 40; bottom: 22px; left: 50%; transform: translateX(-50%); background: var(--fg); color: white; padding: 11px 16px; font-size: 12px; box-shadow: var(--elev-raised); }
+    .footer { padding: 17px 0; border-top: 1px solid var(--border-soft); background: var(--surface); color: var(--muted); font-size: 10px; }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    @media (max-width: 900px) {
+      .shell { width: min(100% - 56px, var(--container-max)); }
+      .intake-grid { grid-template-columns: 1fr; }
+      .result-card { grid-template-columns: minmax(150px, 1fr) minmax(90px, .5fr) minmax(180px, 1.2fr) auto; gap: 12px; }
+      .review-card { grid-template-columns: 1fr 1.2fr 1fr auto; gap: 11px; }
+      .stage { font-size: 9px; }
+    }
+    @media (max-width: 650px) {
+      .shell { width: calc(100% - 36px); }
+      .topbar { height: 58px; }
+      .top-meta { display: none; }
+      .intro { padding: 41px 0 30px; }
+      h1 { font-size: clamp(37px, 11vw, 48px); }
+      .intro-copy { font-size: 15px; }
+      .section-heading { align-items: flex-start; }
+      .section-heading h2, .results-header h2 { font-size: 19px; }
+      .panel-pad { padding: 18px; }
+      .form-grid { gap: 12px; }
+      .field.full { grid-column: 1 / -1; }
+      .step-label { font-size: 9px; }
+      .form-actions { align-items: flex-start; flex-direction: column; }
+      .form-actions .btn-primary { width: 100%; }
+      .processing-section, .results-section { margin-top: 43px; }
+      .processing-panel { padding: 18px 16px 0; }
+      .stage-list { grid-template-columns: repeat(4, 1fr); row-gap: 12px; margin-top: 19px; }
+      .stage:nth-child(4):after { content: ""; }
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+      .metric { padding: 12px; border-top: 1px solid var(--border-soft); }
+      .metric:nth-child(-n+2) { border-top: 0; }
+      .metric:nth-child(2n) { border-right: 0; }
+      .metric:nth-child(4n) { border-right: 0; }
+      .metric:nth-child(n+5) { border-top: 1px solid var(--border-soft); }
+      .processing-top { align-items: flex-start; }
+      .processing-actions { gap: 8px; }
+      .icp-summary { align-items: flex-start; flex-direction: column; gap: 3px; }
+      .live-state { font-size: 0; }
+      .live-dot { width: 9px; height: 9px; }
+      .results-header { align-items: flex-start; }
+      .tabs { gap: 16px; overflow-x: auto; padding-inline: 12px; }
+      .tab { white-space: nowrap; }
+      .tab-toolbar { padding-inline: 10px; }
+      .result-card { grid-template-columns: minmax(0,1fr) auto; gap: 10px; padding: 15px 13px; }
+      .result-card .priority-wrap { grid-column: 2; grid-row: 1; justify-self: end; }
+      .result-card .why { grid-column: 1 / -1; grid-row: 2; }
+      .result-card .detail-link { grid-column: 1 / -1; width: 100%; }
+      .review-banner { align-items: flex-start; flex-direction: column; margin-inline: 10px; }
+      .review-banner .toolbar-actions { width: 100%; }
+      .review-banner .toolbar-actions .btn { flex: 1; }
+      .review-list { padding-inline: 12px; }
+      .review-card { grid-template-columns: 1fr auto; gap: 9px 12px; }
+      .review-card .review-reason { grid-column: 1; }
+      .review-card .confidence { grid-column: 1; }
+      .review-actions { grid-column: 2; grid-row: 1 / span 3; }
+      .failure-callout { align-items: flex-start; flex-direction: column; }
+      .footer-inner { align-items: flex-start; flex-direction: column; }
+      .drawer-head, .drawer-content { padding-inline: 16px; }
+      .kv-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 390px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .segmented button { padding-inline: 9px; }
+      .tabs { gap: 11px; }
+      .tab { font-size: 11px; }
+      .kv-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar" data-od-id="top-navigation">
+    <div class="shell topbar-inner">
+      <a class="brand" href="#top" aria-label="Lead scoring home">
+        <span class="brand-mark" aria-hidden="true">LS</span>
+        <span class="brand-name">Lead scoring</span>
+      </a>
+      <span class="top-meta">GTM WORKSPACE <span aria-hidden="true">·</span> LOCAL TEST ENVIRONMENT</span>
+    </div>
+  </header>
+  <main id="top">
+    <section class="shell intro" data-od-id="intro-section">
+      <p class="eyebrow">Lead Scoring &amp; Prioritisation System</p>
+      <h1 data-od-id="hero-headline">Score your leads.</h1>
+      <p class="intro-copy">Define your ideal customer profile, upload prospects, and automatically enrich, qualify, and prioritise the leads worth pursuing.</p>
+      <a class="jump-link" href="#workspace" data-od-id="try-it-link">Try it yourself <span aria-hidden="true">↓</span></a>
+    </section>
+
+    <section class="shell workspace" id="workspace" data-od-id="input-section">
+      <div class="section-heading">
+        <div><h2>Set up your scoring run</h2><p>Define who you’re looking for, then add prospects to evaluate.</p></div>
+        <span class="step-label">01 / INPUT</span>
+      </div>
+      <div class="intake-grid">
+        <section class="panel panel-pad" aria-labelledby="icp-title" data-od-id="icp-panel">
+          <div class="panel-head">
+            <div><h3 class="panel-title" id="icp-title">Define your ICP</h3><p class="panel-note">These criteria guide every qualification decision.</p></div>
+            <span class="tiny-tag">Required before scoring</span>
+          </div>
+          <form id="icp-form" class="form-grid">
+            <div class="field"><label for="company-size">Target company size <span class="required">· required</span></label><select id="company-size" required data-icp><option value="">—</option><option>1–50 employees</option><option>51–200 employees</option><option>201–1,000 employees</option><option>1,001–5,000 employees</option><option>5,000+ employees</option></select></div>
+            <div class="field"><label for="industry">Industries <span class="required">· required</span></label><input id="industry" placeholder="e.g. B2B SaaS, AI" required data-icp></div>
+            <div class="field"><label for="company-type">Company types <span class="required">· required</span></label><input id="company-type" placeholder="e.g. SaaS, venture-backed" required data-icp></div>
+            <div class="field"><label for="department">Department / function <span class="required">· required</span></label><input id="department" placeholder="—" required data-icp></div>
+            <div class="field"><label for="seniority">Target seniority <span class="required">· required</span></label><input id="seniority" placeholder="—" required data-icp></div>
+            <div class="field"><label for="geography">Target geography <span class="required">· required</span></label><input id="geography" placeholder="—" required data-icp></div>
+            <div class="field"><label for="exclusions">Exclusion criteria <span class="required">· optional</span></label><input id="exclusions" placeholder="—"></div>
+          </form>
+          <div class="fit-note"><b>HOW IT’S USED</b><span>Phase 1 compares a prospect’s role and company against your fit criteria before deciding to proceed, pause for review, or reject.</span></div>
+        </section>
+
+        <section class="panel panel-pad" aria-labelledby="prospects-title" data-od-id="prospect-entry-panel">
+          <div class="panel-head">
+            <div><h3 class="panel-title" id="prospects-title">Add prospects</h3><p class="panel-note">Start with one person or upload a list.</p></div>
+            <div class="segmented" role="group" aria-label="Prospect input method">
+              <button type="button" aria-pressed="true" data-mode="single" data-od-id="single-mode-toggle">Single Prospect</button>
+              <button type="button" aria-pressed="false" data-mode="csv" data-od-id="csv-mode-toggle">CSV Upload</button>
+            </div>
+          </div>
+          <div id="single-mode" class="prospect-form">
+            <div class="field"><label for="prospect-name">Name</label><input id="prospect-name" placeholder="e.g. Alex Morgan" autocomplete="name"></div>
+            <div class="field"><label for="prospect-url">LinkedIn Profile URL</label><input id="prospect-url" type="url" placeholder="https://www.linkedin.com/in/…"></div>
+            <button class="btn" type="button" id="add-prospect" data-od-id="add-prospect-button">Add prospect</button>
+            <div id="prospect-list" class="prospect-list" aria-live="polite"></div>
+          </div>
+          <div id="csv-mode" class="prospect-form" hidden>
+            <div class="upload-zone" id="drop-zone">
+              <span class="upload-symbol" aria-hidden="true">↑</span>
+              <strong>Drop your CSV here</strong>
+              <p>At minimum, include Name and LinkedIn Profile URL columns.</p>
+              <span class="file-button">Choose CSV file</span>
+              <input id="csv-file" type="file" accept=".csv,text/csv" aria-label="Choose a CSV file">
+            </div>
+            <div id="csv-summary" class="csv-summary" aria-live="polite"></div>
+            <div id="csv-prospect-list" class="prospect-list"></div>
+          </div>
+          <div class="form-actions">
+            <span id="form-error" class="form-error" aria-live="polite">Define your ICP and add a valid prospect to continue.</span>
+            <button class="btn btn-primary" id="score-button" type="button" disabled data-od-id="score-prospects-button">Score Prospects <span aria-hidden="true">→</span></button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="shell processing-section" id="processing-section" hidden data-od-id="processing-section">
+      <div class="section-heading"><div><h2>Live processing</h2><p>Each prospect moves independently through enrichment and qualification.</p></div><span class="step-label">02 / PIPELINE</span></div>
+      <div class="panel processing-panel">
+        <div class="processing-top">
+          <div><h2 id="processing-title">Processing prospects</h2><p id="processing-subtitle">Results appear as each prospect completes its evaluation.</p></div>
+          <div class="processing-actions"><span class="live-state" id="live-indicator"><i class="live-dot" aria-hidden="true"></i> LIVE UPDATES</span><button class="btn" type="button" id="new-run">New Run</button></div>
+        </div>
+        <div class="icp-summary"><strong>ICP used for this run</strong><span id="icp-summary-value"></span></div>
+        <div class="stage-list" id="stage-list" aria-label="Batch pipeline stages">
+          <div class="stage done">Prospects<br>detected</div><div class="stage active">Phase 1<br>enrichment</div><div class="stage">Phase 1<br>normalisation</div><div class="stage">Qualification</div><div class="stage">Phase 2<br>enrichment</div><div class="stage">Phase 2<br>normalisation</div><div class="stage">Prioritisation</div><div class="stage">Complete</div>
+        </div>
+        <div class="metrics-grid" id="metrics-grid" aria-live="polite"></div>
+        <div class="table-wrap">
+          <table aria-label="Prospect processing status"><thead><tr><th>Prospect</th><th>Current stage</th><th>Status</th><th>Next action</th></tr></thead><tbody id="processing-rows"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <section class="shell results-section" id="results-section" hidden data-od-id="results-section">
+      <div class="results-header"><div><h2>Prospect outcomes</h2><p>Review decisions and focus on the strongest fit first.</p></div><span class="step-label">03 / RESULTS</span></div>
+      <div class="panel">
+        <div class="tabs" role="tablist" aria-label="Prospect outcome categories">
+          <button class="tab" role="tab" id="tab-completed" aria-selected="true" aria-controls="content-completed" data-tab="completed" data-od-id="completed-tab">Completed <span class="count" id="count-completed">0</span></button>
+          <button class="tab" role="tab" id="tab-review" aria-selected="false" aria-controls="content-review" data-tab="review" data-od-id="human-review-tab">Human Review <span class="count" id="count-review">0</span></button>
+          <button class="tab" role="tab" id="tab-rejected" aria-selected="false" aria-controls="content-rejected" data-tab="rejected" data-od-id="rejected-tab">Rejected <span class="count" id="count-rejected">0</span></button>
+        </div>
+        <div class="results-content" id="content-completed" role="tabpanel" aria-labelledby="tab-completed" data-od-id="completed-results">
+          <div class="tab-toolbar"><div class="priority-filter" aria-label="Filter by priority"><button class="filter" aria-pressed="true" data-filter="all">All</button><button class="filter" aria-pressed="false" data-filter="P1">P1</button><button class="filter" aria-pressed="false" data-filter="P2">P2</button><button class="filter" aria-pressed="false" data-filter="P3">P3</button></div><span class="step-label" id="completed-summary">0 qualified</span></div>
+          <div class="prospect-cards" id="completed-list"></div>
+        </div>
+        <div class="results-content" id="content-review" role="tabpanel" aria-labelledby="tab-review" hidden data-od-id="review-results">
+          <div class="review-banner"><div><strong>Needs your judgement</strong><p>These profiles are paused until you approve or reject them.</p></div><div class="toolbar-actions"><button class="btn" id="approve-all" data-od-id="approve-all-button">Approve All</button><button class="btn reject-action" id="reject-all" data-od-id="reject-all-button">Reject All</button></div></div>
+          <div class="review-list" id="review-list"></div>
+        </div>
+        <div class="results-content" id="content-rejected" role="tabpanel" aria-labelledby="tab-rejected" hidden data-od-id="rejected-results">
+          <div class="tab-toolbar"><span class="step-label">Rejected during Phase 1 · override individually</span></div>
+          <div class="prospect-cards" id="rejected-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><div class="shell footer-inner"><span>Lead Scoring &amp; Prioritisation System</span><span>Local API · Test workflow</span></div></footer>
+
+  <div id="drawer-backdrop" class="drawer-backdrop" hidden role="presentation">
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" data-od-id="prospect-detail-drawer">
+      <div class="drawer-head"><div><h2 id="drawer-title">Prospect detail</h2><p id="drawer-subtitle">Pipeline trace and enrichment data</p></div><button class="icon-btn" id="close-drawer" aria-label="Close details">×</button></div>
+      <div class="drawer-content" id="drawer-content"></div>
+    </aside>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script>
+    /* Live local API adapter. This intentionally leaves the presentation layer above intact. */
+    (() => {
+      const API_BASE = (window.LEAD_SCORING_API_BASE_URL ?? (location.port === '5173' ? 'http://127.0.0.1:8000' : '')).replace(/\/$/, '');
+      let runtimeMode = { mode: 'unknown', sample_prospects: [] };
+      const q = (selector, root = document) => root.querySelector(selector);
+      const qa = (selector, root = document) => [...root.querySelectorAll(selector)];
+      const safe = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+      const state = { mode: 'single', inputs: [], csv: [], batch: null, prospects: [], icp: null, tab: 'completed', filter: 'all', poller: null, failures: 0, submitting: false };
+      const sizeRanges = { '1–50 employees': [1, 50], '51–200 employees': [51, 200], '201–1,000 employees': [201, 1000], '1,001–5,000 employees': [1001, 5000], '5,000+ employees': [5000, null] };
+      const stateLabel = { PHASE1_QUEUED: 'Queued', PHASE2_QUEUED: 'Queued', HUMAN_REVIEW: 'Human Review', REJECTED: 'Rejected', COMPLETED: 'Completed', FAILED: 'Failed', CONTACT_ENRICHMENT_PENDING: 'Awaiting contact enrichment' };
+      const terminal = () => state.batch && state.batch.total === state.batch.completed + state.batch.rejected + state.batch.failed;
+      const split = value => value.split(',').map(item => item.trim()).filter(Boolean);
+      const toast = message => { const el = q('#toast'); el.textContent = message; el.hidden = false; clearTimeout(toast.timer); toast.timer = setTimeout(() => { el.hidden = true; }, 3500); };
+      const errorMessage = error => error?.message || 'Unable to reach the local API. Check that it is running on port 8000.';
+      async function request(path, options = {}) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+        try {
+          const response = await fetch(`${API_BASE}${path}`, { ...options, signal: controller.signal, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
+          const body = response.status === 204 ? null : await response.json().catch(() => null);
+          if (!response.ok) throw new Error(Array.isArray(body?.detail) ? body.detail.map(item => `${item.loc?.slice(1).join('.') || 'Input'}: ${item.msg}`).join('; ') : body?.detail || `Request failed (${response.status}).`);
+          return body;
+        } catch (error) {
+          throw new Error(error.name === 'AbortError' ? 'The API request timed out.' : error.message);
+        } finally { clearTimeout(timeout); }
+      }
+      const api = (path, options) => request(path, options);
+      const validUrl = value => /^https?:\/\/(?:www\.)?linkedin\.com\//i.test(value.trim());
+      const activeInputs = () => state.mode === 'single' ? state.inputs : state.csv.filter(row => row.valid);
+      function makeIcp() {
+        const range = sizeRanges[q('#company-size').value];
+        if (!range) return null;
+        return { company_size_min: range[0], company_size_max: range[1], industries: split(q('#industry').value), company_types: split(q('#company-type').value), departments: split(q('#department').value), seniorities: split(q('#seniority').value), geographies: split(q('#geography').value), exclusions: split(q('#exclusions').value) };
+      }
+      function formReady() {
+        const icp = makeIcp();
+        return Boolean(icp && icp.industries.length && icp.company_types.length && icp.departments.length && icp.seniorities.length && icp.geographies.length && activeInputs().length >= 1 && activeInputs().length <= 250);
+      }
+      function updateForm() {
+        const count = activeInputs().length, ready = formReady() && !state.submitting;
+        q('#score-button').disabled = !ready;
+        q('#form-error').textContent = ready ? `${count} valid prospect${count === 1 ? '' : 's'} ready to score.` : count > 250 ? 'A batch can contain up to 250 valid prospects.' : 'Define all required ICP criteria and add 1–250 valid prospects.';
+      }
+      function renderInputs() {
+        const container = q(state.mode === 'single' ? '#prospect-list' : '#csv-prospect-list');
+        container.innerHTML = activeInputs().map((person, index) => `<div class="prospect-chip"><span><b>${safe(person.name)}</b> <small>${safe(person.linkedin_url)}</small></span><button type="button" class="remove-row" aria-label="Remove ${safe(person.name)}" data-live-remove="${index}">×</button></div>`).join('');
+        updateForm();
+      }
+      function setMode(mode) {
+        state.mode = mode;
+        qa('[data-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === mode)));
+        q('#single-mode').hidden = mode !== 'single'; q('#csv-mode').hidden = mode !== 'csv'; renderInputs();
+      }
+      function parseCsv(text) {
+        const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(line => line.trim());
+        const values = line => line.match(/(?:[^,"]+|"(?:[^"]|"")*")+/g)?.map(value => value.trim().replace(/^"|"$/g, '').replace(/""/g, '"')) || [];
+        const headers = values(lines.shift() || '').map(value => value.toLowerCase().replace(/[^a-z0-9]/g, ''));
+        const nameAt = headers.findIndex(value => ['name', 'fullname', 'prospectname'].includes(value));
+        const urlAt = headers.findIndex(value => ['linkedinprofileurl', 'linkedinurl', 'linkedinprofile', 'linkedin'].includes(value));
+        if (nameAt < 0 || urlAt < 0) return { error: 'Include Name and LinkedIn Profile URL columns.', rows: [] };
+        return { rows: lines.map((line, offset) => { const row = values(line), name = row[nameAt]?.trim() || '', linkedin_url = row[urlAt]?.trim() || ''; return { name, linkedin_url, line: offset + 2, valid: Boolean(name && validUrl(linkedin_url)), reason: !name ? 'Name is missing.' : !validUrl(linkedin_url) ? 'A valid LinkedIn URL is required.' : '' }; }) };
+      }
+      function renderCsvSummary() {
+        const valid = state.csv.filter(row => row.valid), invalid = state.csv.filter(row => !row.valid), summary = q('#csv-summary');
+        summary.classList.add('visible');
+        summary.innerHTML = `<div class="csv-topline"><span>${state.csv.error || 'Prospects detected'}</span><span>${state.csv.error ? '—' : state.csv.length}</span></div>${state.csv.error ? '' : `<div class="csv-metrics"><span>Valid rows <strong>${valid.length}</strong></span><span>Invalid rows <strong>${invalid.length}</strong></span></div>${invalid.length ? `<ul class="csv-issues">${invalid.map(row => `<li>Row ${row.line}: ${safe(row.reason)}</li>`).join('')}</ul>` : ''}`}`;
+      }
+      function uiStatus(prospect) {
+        if (stateLabel[prospect.current_state]) return stateLabel[prospect.current_state];
+        return prospect.current_state?.includes('QUEUED') ? 'Queued' : 'Processing';
+      }
+      function statusClass(prospect) { return prospect.current_state === 'FAILED' ? 'failed' : prospect.current_state === 'REJECTED' ? 'rejected' : prospect.current_state === 'COMPLETED' ? 'complete' : prospect.current_state === 'HUMAN_REVIEW' ? 'review' : prospect.current_state?.includes('QUEUED') ? 'queued' : 'processing'; }
+      function renderMetrics() {
+        const batch = state.batch || { total: 0, processing: 0, queued: 0, completed: 0, human_review: 0, rejected: 0, failed: 0 };
+        const metric = (value, label) => `<div class="metric"><div class="metric-value">${value}</div><div class="metric-label">${label}</div></div>`;
+        q('#metrics-grid').innerHTML = metric(batch.total, 'Prospects detected') + metric(batch.processing, 'Currently processing') + metric(batch.queued, 'Queued') + metric(batch.completed, 'Completed') + metric(batch.human_review, 'Human review') + metric(batch.rejected, 'Rejected') + metric(batch.failed, 'Failed');
+        const stages = qa('.stage-list .stage'); const done = terminal() ? 8 : state.prospects.some(person => person.current_state === 'COMPLETED') ? 6 : 1;
+        stages.forEach((stage, index) => { stage.classList.toggle('done', index < done); stage.classList.toggle('active', !terminal() && index === done); });
+      }
+      function renderProcessing() {
+        renderMetrics();
+        q('#processing-rows').innerHTML = state.prospects.map(person => `<tr><td class="person-cell">${safe(person.name)}<small>${safe(person.job_title || 'Prospect')}</small></td><td>${safe(person.current_stage?.replaceAll('_', ' ') || uiStatus(person))}${person.latest_error_message ? `<small>${safe(person.latest_error_message)}</small>` : ''}</td><td><span class="status ${statusClass(person)}">${safe(uiStatus(person))}</span></td><td>${person.current_state === 'FAILED' ? `<button class="btn row-action" data-live-retry="${person.id}">Retry</button> ` : ''}${['COMPLETED', 'FAILED', 'HUMAN_REVIEW', 'REJECTED'].includes(person.current_state) ? `<button class="btn btn-text row-action" data-live-detail="${person.id}">View details</button>` : '<span class="step-label">UPDATING</span>'}</td></tr>`).join('');
+      }
+      const counts = () => ({ completed: state.prospects.filter(person => person.current_state === 'COMPLETED').length, review: state.prospects.filter(person => person.current_state === 'HUMAN_REVIEW').length, rejected: state.prospects.filter(person => person.current_state === 'REJECTED').length });
+      function renderResults() {
+        const completed = state.prospects.filter(person => person.current_state === 'COMPLETED' && (state.filter === 'all' || person.final_priority === state.filter));
+        q('#completed-summary').textContent = `${counts().completed} qualified`;
+        q('#completed-list').innerHTML = completed.length ? completed.map(person => `<article class="result-card"><div><h3 class="result-name">${safe(person.name)}</h3><p class="result-sub">${safe(person.job_title || 'Prospect')} — ${safe(person.company_name || 'Company pending')}</p></div><div class="priority-wrap"><span class="priority ${(person.final_priority || 'P3').toLowerCase()}">${safe(person.final_priority || 'Pending')}</span><span class="fit">Confidence · ${safe(person.priority_confidence || '—')}</span></div><div class="why">${person.contact_outcome === 'NO_CONTACTS_FOUND' ? 'No contacts found. ' : ''}${safe(person.priority_summary || person.priority_reason || 'Priority evidence is available in the detail view.')}<div class="signal-row">${(person.positive_signals || []).map(signal => `<span class="signal">${safe(signal)}</span>`).join('')}</div></div><button class="btn detail-link" data-live-detail="${person.id}">View Details</button></article>`).join('') : '<div class="empty-state"><strong>No completed prospects yet</strong>They’ll appear here progressively when qualification and enrichment finish.</div>';
+        const review = state.prospects.filter(person => person.current_state === 'HUMAN_REVIEW');
+        q('#review-list').innerHTML = review.length ? review.map(person => `<article class="review-card"><div><h3 class="result-name">${safe(person.name)}</h3><p class="result-sub">${safe(person.job_title || 'Prospect')}<br>${safe(person.company_name || 'Company pending')}</p><div class="flow-state">Human Review · Paused</div></div><div class="review-reason"><strong>Why we’re uncertain</strong>${safe(person.qualification_reason || 'Some fit signals need a person to confirm.')}</div><div class="review-reason"><strong>Qualification confidence</strong>${safe(person.qualification_confidence || '—')}</div><div class="review-actions"><button class="btn" data-live-review="approve" data-id="${person.id}">Approve</button><button class="btn reject-action" data-live-review="reject" data-id="${person.id}">Reject</button><button class="btn btn-text" data-live-detail="${person.id}">Details</button></div></article>`).join('') : '<div class="empty-state"><strong>All caught up</strong>Prospects that need a closer look will appear here.</div>';
+        const rejected = state.prospects.filter(person => person.current_state === 'REJECTED');
+        q('#rejected-list').innerHTML = rejected.length ? rejected.map(person => `<article class="result-card"><div><h3 class="result-name">${safe(person.name)}</h3><p class="result-sub">${safe(person.job_title || 'Prospect')} — ${safe(person.company_name || 'Company pending')}</p></div><div class="priority-wrap"><span class="status rejected">Rejected</span></div><div class="why"><b>Why they were rejected</b><br>${safe(person.qualification_reason || 'Profile did not meet the defined ICP criteria.')}</div><button class="btn detail-link" data-live-review="override" data-id="${person.id}">Override &amp; Continue</button></article>`).join('') : '<div class="empty-state"><strong>No rejected prospects</strong>Prospects that miss the ICP criteria will be listed here.</div>';
+        const resultCounts = counts(); ['completed', 'review', 'rejected'].forEach(key => { q(`#count-${key}`).textContent = resultCounts[key]; });
+      }
+      function renderAll() { renderProcessing(); renderResults(); q('#live-indicator').innerHTML = state.failures >= 3 ? '<i class="live-dot" aria-hidden="true"></i> UPDATES PAUSED <button class="btn btn-text" data-live-refresh>Refresh</button>' : '<i class="live-dot" aria-hidden="true"></i> LIVE UPDATES'; }
+      async function refresh() {
+        if (!state.batch?.id) return;
+        try { const [batch, prospects] = await Promise.all([api(`/batches/${state.batch.id}`), api(`/batches/${state.batch.id}/prospects`)]); state.batch = batch; state.prospects = prospects; state.failures = 0; renderAll(); if (terminal()) stopPolling(); }
+        catch (error) { state.failures += 1; if (state.failures >= 3) { stopPolling(); renderAll(); } }
+      }
+      function startPolling() { stopPolling(); refresh(); state.poller = setInterval(refresh, 2000); }
+      function stopPolling() { if (state.poller) clearInterval(state.poller); state.poller = null; }
+      async function submit() {
+        state.icp = makeIcp(); const prospects = activeInputs().map(person => ({ name: person.name, linkedin_url: person.linkedin_url }));
+        if (!formReady()) return;
+        state.submitting = true; updateForm();
+        let submissionError = null;
+        try { const batch = await api('/batches', { method: 'POST', body: JSON.stringify({ icp: state.icp, prospects }) }); state.batch = batch; state.prospects = []; history.replaceState(null, '', `${location.pathname}?batch=${batch.id}`); q('#processing-section').hidden = false; q('#results-section').hidden = false; q('#icp-summary-value').textContent = `${q('#company-size').value} · ${state.icp.industries.join(', ')} · ${state.icp.departments.join(', ')}`; startPolling(); toast('Batch submitted. Live updates have started.'); }
+        catch (error) { submissionError = errorMessage(error); }
+        finally { state.submitting = false; updateForm(); if (submissionError) q('#form-error').textContent = submissionError; }
+      }
+      async function action(path, message, body = {}) { try { await api(path, { method: 'POST', body: JSON.stringify(body) }); toast(message); startPolling(); } catch (error) { toast(errorMessage(error)); } }
+      const kv = (label, value) => `<div class="kv"><span>${safe(label)}</span><b>${safe(typeof value === 'object' ? JSON.stringify(value) : value || '—')}</b></div>`;
+      const block = (title, content, open = false) => `<details class="detail-block" ${open ? 'open' : ''}><summary>${title}</summary><div class="detail-body">${content}</div></details>`;
+      async function detail(id) {
+        try {
+          const person = await api(`/prospects/${id}`); q('#drawer-title').textContent = person.name; q('#drawer-subtitle').textContent = `${person.phase1_normalized_data?.job_title || 'Prospect'} · ${person.phase1_normalized_data?.company_name || 'Company pending'}`;
+          const input = kv('Name', person.name) + kv('LinkedIn URL', person.linkedin_url);
+          const history = person.stage_history.map(run => kv(run.stage, `${run.status}${run.error_message ? ` — ${run.error_message}` : ''}`)).join('');
+          const raw = person.raw_provider_responses.map(response => block(`${response.phase} · ${response.provider} raw response`, `<pre>${safe(JSON.stringify(response.payload, null, 2))}</pre>`)).join('');
+          const failure = person.current_state === 'FAILED' ? `<div class="failure-callout" style="margin:0 0 11px"><p><strong>Latest failure</strong>${safe(person.stage_history.filter(run => run.status === 'FAILED').at(-1)?.error_message || 'Unknown error')}</p><button class="btn row-action" data-live-retry="${person.id}">Retry</button></div>` : '';
+          q('#drawer-content').innerHTML = (person.contact_outcome === 'NO_CONTACTS_FOUND' ? '<p role="status">No contacts found</p>' : '') + failure + block('Input', `<div class="kv-grid">${input}</div>`, true) + block('Stage history', `<div class="kv-grid">${history || kv('Status', 'No stages recorded')}</div>`, true) + block('Phase 1 · Normalised data', `<pre>${safe(JSON.stringify(person.phase1_normalized_data, null, 2))}</pre>`) + block('Qualification decision', `<pre>${safe(JSON.stringify(person.qualification, null, 2))}</pre>`, true) + block('Phase 2 · Normalised data', `<pre>${safe(JSON.stringify(person.phase2_normalized_data, null, 2))}</pre>`) + block('Priority evidence', `<pre>${safe(JSON.stringify(person.priority_result, null, 2))}</pre>`, person.current_state === 'COMPLETED') + raw;
+          q('#drawer-backdrop').hidden = false; document.body.style.overflow = 'hidden'; q('#close-drawer').focus();
+        } catch (error) { toast(errorMessage(error)); }
+      }
+      document.addEventListener('click', event => {
+        const target = event.target.closest('[data-mode], [data-tab], [data-filter], #add-prospect, #score-button, #new-run, [data-live-remove], [data-live-retry], [data-live-detail], [data-live-review], #approve-all, #reject-all, [data-live-refresh], [data-od-id="load-demo-setup"]');
+        if (!target) return; event.preventDefault(); event.stopImmediatePropagation();
+        if (target.dataset.mode) return setMode(target.dataset.mode);
+        if (target.dataset.tab) { state.tab = target.dataset.tab; qa('[data-tab]').forEach(tab => tab.setAttribute('aria-selected', String(tab === target))); return ['completed', 'review', 'rejected'].forEach(tab => { q(`#content-${tab}`).hidden = tab !== state.tab; }); }
+        if (target.dataset.filter) { state.filter = target.dataset.filter; qa('[data-filter]').forEach(filter => filter.setAttribute('aria-pressed', String(filter === target))); return renderResults(); }
+        if (target.id === 'add-prospect') { const name = q('#prospect-name').value.trim(), linkedin_url = q('#prospect-url').value.trim(); if (!name || !validUrl(linkedin_url)) return toast('Enter a name and valid LinkedIn URL.'); state.inputs.push({ name, linkedin_url }); q('#prospect-name').value = ''; q('#prospect-url').value = ''; return renderInputs(); }
+        if (target.id === 'score-button') return submit();
+        if (target.id === 'new-run') { stopPolling(); state.batch = null; state.prospects = []; state.icp = null; history.replaceState(null, '', location.pathname); q('#processing-section').hidden = true; q('#results-section').hidden = true; return toast('New run ready — ICP criteria retained.'); }
+        if (target.dataset.liveRemove !== undefined) { const index = Number(target.dataset.liveRemove); if (state.mode === 'single') state.inputs.splice(index, 1); else { const row = state.csv.filter(person => person.valid)[index]; state.csv = state.csv.filter(person => person !== row); renderCsvSummary(); } return renderInputs(); }
+        if (target.dataset.liveRetry) {
+          const id = target.dataset.liveRetry;
+          api(`/prospects/${id}`).then(person => {
+            const acknowledgment = person.retry_requires_confirmation;
+            if (acknowledgment && !window.confirm('The provider outcome is unknown. Retrying this stage may cause a duplicate charge. Continue?')) return;
+            return action(`/prospects/${id}/retry`, 'Prospect requeued at the failed stage.', { acknowledge_possible_duplicate_charge: acknowledgment });
+          }).catch(error => toast(errorMessage(error)));
+          return;
+        }
+        if (target.dataset.liveDetail) return detail(target.dataset.liveDetail);
+        if (target.dataset.liveReview) return action(`/prospects/${target.dataset.id}/${target.dataset.liveReview}`, 'Review decision saved.');
+        if (target.id === 'approve-all') return action(`/batches/${state.batch.id}/human-review/approve-all`, 'Review prospects approved.');
+        if (target.id === 'reject-all') return action(`/batches/${state.batch.id}/human-review/reject-all`, 'Review prospects rejected.');
+        if (target.dataset.liveRefresh !== undefined) return startPolling();
+        if (target.dataset.odId === 'load-demo-setup') { q('#company-size').value = '201–1,000 employees'; q('#industry').value = 'B2B SaaS, AI'; q('#company-type').value = 'SaaS, venture-backed'; q('#department').value = 'Revenue Operations, GTM'; q('#seniority').value = 'Director, VP'; q('#geography').value = 'United States, Canada'; q('#exclusions').value = 'Retail, agencies'; state.inputs = runtimeMode.mode === 'demo' ? runtimeMode.sample_prospects.map(person => ({ ...person })) : [{ name: 'Example prospect', linkedin_url: 'https://www.linkedin.com/in/example-prospect' }]; renderInputs(); toast(runtimeMode.mode === 'demo' ? 'Six fictional prospects loaded. Score the list, then review Sam’s outcome.' : 'Sample values loaded. Live provider access is required.'); }
+      }, true);
+      document.addEventListener('keydown', event => { if (event.key === 'Enter' && event.target === q('#prospect-url')) { event.preventDefault(); event.stopImmediatePropagation(); q('#add-prospect').click(); } }, true);
+      q('#csv-file').addEventListener('change', async event => { const file = event.target.files[0]; if (!file) return; const parsed = parseCsv(await file.text()); state.csv = parsed.rows; state.csv.error = parsed.error; renderCsvSummary(); renderInputs(); });
+      ['dragover', 'drop'].forEach(type => q('#drop-zone').addEventListener(type, async event => { event.preventDefault(); if (type === 'drop') { const parsed = parseCsv(await event.dataTransfer.files[0].text()); state.csv = parsed.rows; state.csv.error = parsed.error; renderCsvSummary(); renderInputs(); } }));
+      document.addEventListener('input', event => { if (event.target.matches('[data-icp], #exclusions')) { event.stopImmediatePropagation(); updateForm(); } }, true);
+      document.addEventListener('change', event => { if (event.target.matches('[data-icp], #exclusions')) { event.stopImmediatePropagation(); updateForm(); } }, true);
+      qa('[data-tab]').forEach(button => button.addEventListener('click', () => { state.tab = button.dataset.tab; qa('[data-tab]').forEach(tab => tab.setAttribute('aria-selected', String(tab === button))); ['completed', 'review', 'rejected'].forEach(tab => { q(`#content-${tab}`).hidden = tab !== state.tab; }); }));
+      qa('[data-filter]').forEach(button => button.addEventListener('click', () => { state.filter = button.dataset.filter; qa('[data-filter]').forEach(filter => filter.setAttribute('aria-pressed', String(filter === button))); renderResults(); }));
+      const demoButton = document.createElement('button'); demoButton.className = 'btn btn-text'; demoButton.type = 'button'; demoButton.textContent = 'Load demo setup'; demoButton.setAttribute('data-od-id', 'load-demo-setup'); q('.panel-head', q('#icp-title').closest('.panel')).append(demoButton);
+      api('/runtime-config').then(info => {
+        runtimeMode = info;
+        const notice = document.createElement('p'); notice.className = 'panel-note'; notice.setAttribute('role', 'status'); notice.style.marginBottom = '20px';
+        notice.textContent = info.mode === 'demo' ? 'Demo mode · Fictional data and scripted outcomes. No API keys or paid provider calls. Load the demo setup to explore the full workflow.' : 'Live mode · Your provider accounts process submitted profiles. Provider charges may apply.';
+        q('#workspace').prepend(notice);
+      }).catch(() => {});
+      const existingBatch = new URLSearchParams(location.search).get('batch'); if (existingBatch) { state.batch = { id: existingBatch }; q('#processing-section').hidden = false; q('#results-section').hidden = false; startPolling(); }
+      updateForm();
+    })();
+  </script>
+
+  <script>
+    (() => {
+      // The live adapter above owns all controls; retain this former mock only as inactive reference markup.
+      return;
+      const $ = (s, root=document) => root.querySelector(s);
+      const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+      const state = { mode: 'single', prospects: [], csv: [], tab: 'completed', filter: 'all', timers: [], toastTimer: null, runIcp: null };
+      const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+      const samplePeople = [
+        {name:'Alex Morgan', url:'https://www.linkedin.com/in/alex-morgan-revops', title:'VP Revenue Operations', company:'Flowdesk AI', department:'Revenue Operations', seniority:'VP', location:'New York, NY', industry:'B2B SaaS · AI', size:'201–1,000', companyType:'Venture-backed SaaS', companyLocation:'New York, US', priority:'P1', fit:'Strong', why:'Role and company sit squarely in your target segment. Recent funding and an expanding RevOps team suggest strong timing.', signals:['Recently funded','Hiring RevOps','Headcount +28%'], confidence:94, personFit:'Strong', companyFit:'Strong', exclusionFlags:'None', qualification:'Pass', phase1Raw:{headline:'VP Revenue Operations at Flowdesk AI', location:'New York City Metropolitan Area', currentCompany:'Flowdesk AI', profileUrl:'linkedin.com/in/alex-morgan-revops'}, phase2Raw:{funding:'Series B · $42M · 4 months ago', hiring:'3 open Revenue Operations roles', headcountTrend:'+28% year over year', technologies:['Salesforce','HubSpot','6sense'], events:['Expanded GTM team · Q2']}, positiveSignals:['Recently funded','Hiring RevOps','Headcount +28%'], negativeSignals:['None identified']},
+        {name:'Priya Nair', url:'https://www.linkedin.com/in/priya-nair-growth', title:'Director, Growth Operations', company:'Northstar Cloud', department:'Growth Operations', seniority:'Director', location:'Austin, TX', industry:'Cloud software', size:'51–200', companyType:'B2B SaaS', companyLocation:'Austin, US', priority:'P2', fit:'Strong', why:'Excellent function and seniority fit. Company is slightly below the preferred size band, with moderate hiring signals.', signals:['New GTM leadership','Hiring 2 roles'], confidence:82, personFit:'Strong', companyFit:'Good', exclusionFlags:'None', qualification:'Pass', phase1Raw:{headline:'Director of Growth Operations at Northstar Cloud', location:'Austin, Texas', currentCompany:'Northstar Cloud', profileUrl:'linkedin.com/in/priya-nair-growth'}, phase2Raw:{funding:'Series A · $18M · 14 months ago', hiring:'2 open GTM operations roles', headcountTrend:'+12% year over year', technologies:['Salesforce','Segment'], events:['New CRO appointed · 6 weeks ago']}, positiveSignals:['New GTM leadership','Hiring 2 roles'], negativeSignals:['Headcount below preferred range']},
+        {name:'Jordan Blake', url:'https://www.linkedin.com/in/jordan-blake', title:'VP, Business Operations', company:'Meridian Systems', department:'Business Operations', seniority:'VP', location:'Chicago, IL', industry:'Enterprise software', size:'1,001–5,000', companyType:'B2B software', companyLocation:'Chicago, US', priority:'P3', fit:'Moderate', why:'Company fits the segment, though the role’s buying influence for a RevOps solution is less direct.', signals:['Enterprise segment','Modern sales stack'], confidence:76, personFit:'Moderate', companyFit:'Strong', exclusionFlags:'None', qualification:'Pass', phase1Raw:{headline:'VP Business Operations at Meridian Systems', location:'Chicago, Illinois', currentCompany:'Meridian Systems', profileUrl:'linkedin.com/in/jordan-blake'}, phase2Raw:{funding:'Public company · Q3 revenue +8%', hiring:'1 open sales systems role', headcountTrend:'+6% year over year', technologies:['Salesforce','Clari','Gong'], events:['New enterprise product launch']}, positiveSignals:['Enterprise segment','Modern sales stack'], negativeSignals:['Indirect functional ownership']},
+        {name:'Sam Rivera', url:'https://www.linkedin.com/in/sam-rivera-revenue', title:'Revenue Operations Lead', company:'Orbit Labs', department:'Revenue Operations', seniority:'Lead', location:'Remote · US', industry:'B2B SaaS', size:'51–200', companyType:'Early-stage SaaS', companyLocation:'San Francisco, US', confidence:63, personFit:'Strong', companyFit:'Moderate', exclusionFlags:'Company size uncertain', qualification:'Human Review', uncertainty:'Profile indicates strong functional fit, but company headcount is inconsistent across sources (85–240). Verify segment before investing in deeper research.', enriched:'Employee range: 85–240 · Remote-first · SaaS platform for data teams · Headcount source updated 7 months ago.', status:'review', phase1Raw:{headline:'Revenue Operations Lead at Orbit Labs', location:'United States · Remote', currentCompany:'Orbit Labs', profileUrl:'linkedin.com/in/sam-rivera-revenue', sourceConflict:'Headcount range differs between provider sources'}, phase2Raw:{}},
+        {name:'Taylor Chen', url:'https://www.linkedin.com/in/taylor-chen', title:'Marketing Coordinator', company:'Summit Retail Group', department:'Marketing', seniority:'Coordinator', location:'Miami, FL', industry:'Retail', size:'1,001–5,000', companyType:'Retail group', companyLocation:'Miami, US', confidence:97, personFit:'Poor', companyFit:'Poor', exclusionFlags:'Outside target function; excluded retail industry', qualification:'Reject', rejectionReason:'The role is in marketing coordination, outside the target Revenue Operations function. The employer is a retail group, which is an excluded company type.', status:'rejected', phase1Raw:{headline:'Marketing Coordinator at Summit Retail Group', location:'Miami, Florida', currentCompany:'Summit Retail Group', profileUrl:'linkedin.com/in/taylor-chen'}, phase2Raw:{}},
+        {name:'Casey Patel', url:'https://www.linkedin.com/in/casey-patel-gtm', title:'Senior Director, GTM Strategy', company:'LatticeWorks', department:'GTM Strategy', seniority:'Senior Director', location:'Boston, MA', industry:'B2B SaaS', size:'201–1,000', companyType:'SaaS', companyLocation:'Boston, US', confidence:88, personFit:'Strong', companyFit:'Strong', exclusionFlags:'None', qualification:'Pass', priority:'P1', fit:'Strong', why:'Senior GTM leader at a fast-growing SaaS company. Hiring signals and a recent product expansion indicate a timely opportunity.', signals:['Headcount +34%','4 GTM openings','Product expansion'], positiveSignals:['Headcount +34%','4 GTM openings','Product expansion'], negativeSignals:['None identified'], phase1Raw:{headline:'Senior Director, GTM Strategy at LatticeWorks', location:'Boston, Massachusetts', currentCompany:'LatticeWorks', profileUrl:'linkedin.com/in/casey-patel-gtm'}, phase2Raw:{funding:'Series C · $65M · 9 months ago', hiring:'4 open GTM roles', headcountTrend:'+34% year over year', technologies:['Salesforce','Clari','Outreach'], events:['Launched enterprise product tier']}}
+      ];
+      const stages = ['Phase 1 enrichment','Phase 1 normalisation','Qualification','Phase 2 enrichment','Phase 2 normalisation','Prioritisation','Complete'];
+      const icpFields = ['company-size','industry','department','seniority','geography'];
+      const getProspects = () => state.prospects;
+      const isUrl = v => /^https?:\/\/(www\.)?linkedin\.com\//i.test((v||'').trim());
+      const validIcp = () => icpFields.every(id => $(`#${id}`).value.trim());
+      const validLeadCount = () => state.mode === 'single' ? state.prospects.length : state.csv.filter(x=>x.valid).length;
+      const setMode = mode => {
+        state.mode = mode;
+        $$('[data-mode]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.mode===mode)));
+        $('#single-mode').hidden = mode !== 'single'; $('#csv-mode').hidden = mode !== 'csv';
+        updateScoreButton();
+      };
+      const updateScoreButton = () => {
+        const ok = validIcp() && validLeadCount() > 0;
+        $('#score-button').disabled = !ok;
+        $('#form-error').textContent = ok ? `${validLeadCount()} valid prospect${validLeadCount()===1?'':'s'} ready to score.` : (!validIcp() ? 'Define the 5 required ICP criteria to continue.' : 'Add at least one valid prospect to continue.');
+      };
+      const renderProspectInputs = () => {
+        const listId = state.mode === 'single' ? '#prospect-list' : '#csv-prospect-list';
+        const rows = state.mode === 'single' ? state.prospects : state.csv.filter(p=>p.valid);
+        $(listId).innerHTML = rows.map((p,i)=>`<div class="prospect-chip"><span><b>${escapeHtml(p.name)}</b> <small>${escapeHtml(p.url)}</small></span><button type="button" class="remove-row" aria-label="Remove ${escapeHtml(p.name)}" data-remove-input="${i}">×</button></div>`).join('');
+        $$('[data-remove-input]', $(listId)).forEach(btn=>btn.addEventListener('click',()=>{
+          if(state.mode==='single') state.prospects.splice(Number(btn.dataset.removeInput),1);
+          else { const valid = state.csv.filter(p=>p.valid); const remove=valid[Number(btn.dataset.removeInput)]; state.csv=state.csv.filter(p=>p!==remove); updateCsvSummary(); }
+          renderProspectInputs(); updateScoreButton();
+        }));
+      };
+      const addSingle = () => {
+        const name=$('#prospect-name').value.trim(), url=$('#prospect-url').value.trim();
+        if(!name || !url || !isUrl(url)) { $('#form-error').textContent='Enter a name and a valid LinkedIn profile URL.'; return; }
+        state.prospects.push({name,url}); $('#prospect-name').value=''; $('#prospect-url').value=''; renderProspectInputs(); updateScoreButton();
+      };
+      const parseCsv = text => {
+        const lines=[]; let row=[], cell='', quoted=false;
+        for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1]; if(c==='"'&&quoted&&n==='"'){cell+='"';i++;} else if(c==='"'){quoted=!quoted;} else if(c===','&&!quoted){row.push(cell);cell='';} else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&n==='\n')i++;row.push(cell);if(row.some(v=>v.trim()))lines.push(row);row=[];cell='';} else cell+=c;}
+        row.push(cell); if(row.some(v=>v.trim())) lines.push(row); if(lines.length<2)return [];
+        const headers=lines.shift().map(v=>v.trim().toLowerCase().replace(/[^a-z0-9]/g,''));
+        const nameIx=headers.findIndex(h=>['name','fullname','prospectname'].includes(h)); const urlIx=headers.findIndex(h=>['linkedinprofileurl','linkedinurl','linkedin','profileurl'].includes(h));
+        if(nameIx<0||urlIx<0)return {headerError:true};
+        return lines.map((r,index)=>({name:(r[nameIx]||'').trim(),url:(r[urlIx]||'').trim(),line:index+2,valid:!!(r[nameIx]||'').trim()&&isUrl((r[urlIx]||'').trim()),reason:!(r[nameIx]||'').trim()?'Missing name':!((r[urlIx]||'').trim())?'Missing LinkedIn URL':!isUrl((r[urlIx]||'').trim())?'Invalid LinkedIn URL':''}));
+      };
+      const updateCsvSummary = () => {
+        const wrap=$('#csv-summary'); if(!state.csv.length){wrap.classList.remove('visible');return;}
+        wrap.classList.add('visible'); const invalid=state.csv.filter(p=>!p.valid), valid=state.csv.filter(p=>p.valid).length, missing=state.csv.filter(p=>p.reason==='Missing LinkedIn URL').length;
+        wrap.innerHTML=`<div class="csv-topline"><span>${state.csv.headerError?'CSV columns not recognised':'Prospects detected'}</span><span>${state.csv.headerError?'—':state.csv.length}</span></div>${state.csv.headerError?'<p class="helper">Include columns named Name and LinkedIn Profile URL.</p>':`<div class="csv-metrics"><span>Valid rows <strong>${valid}</strong></span><span>Invalid rows <strong>${invalid.length}</strong></span><span>Missing LinkedIn URLs <strong>${missing}</strong></span></div>${invalid.length?`<ul class="csv-issues">${state.csv.map((p,i)=>!p.valid?`<li>Row ${p.line}: ${escapeHtml(p.reason)} <button type="button" class="btn btn-text csv-remove-row" data-remove-csv="${i}">Remove Row</button></li>`:'').join('')}</ul>`:''}`}`;
+        $$('[data-remove-csv]',wrap).forEach(button=>button.addEventListener('click',()=>{state.csv.splice(Number(button.dataset.removeCsv),1);updateCsvSummary();}));
+        renderProspectInputs(); updateScoreButton();
+      };
+      const addCsvFile = async file => {
+        if(!file)return; if(!file.name.toLowerCase().endsWith('.csv')){state.csv=[];$('#csv-summary').innerHTML='<strong>Choose a CSV file.</strong>';$('#csv-summary').classList.add('visible');updateScoreButton();return;}
+        const parsed=parseCsv(await file.text()); state.csv=Array.isArray(parsed)?parsed:[]; if(parsed?.headerError)state.csv=[{headerError:true}]; updateCsvSummary();
+      };
+      const icpSnapshot = () => Object.fromEntries([...$$('[data-icp]'),$('#exclusions')].map(el=>[el.id,el.value.trim()]));
+      const formatIcpSummary = icp => [icp.industry, icp['company-size'], icp.department, icp.seniority, icp.geography].filter(Boolean).join(' · ');
+      const startRun = () => {
+        const inputs=state.mode==='single'?state.prospects:state.csv.filter(p=>p.valid);
+        state.timers.forEach(clearTimeout); state.timers=[];
+        state.runIcp=icpSnapshot();
+        state.prospects=inputs.map((p,i)=>{
+          const outcome=(i+2)%5;
+          const completedTemplates=[samplePeople[1],samplePeople[5],samplePeople[0],samplePeople[2]];
+          const base=i===0?samplePeople[0]:outcome===3?samplePeople[3]:outcome===4?samplePeople[4]:completedTemplates[(i-3)%completedTemplates.length];
+          const same=p.name===base.name ? {...base} : { ...base, name:p.name, url:p.url };
+          return {...same,name:p.name,url:p.url,status:'queued',stage:0,started:true,attempt:0};
+        });
+        $('#processing-section').hidden=false; $('#results-section').hidden=false;
+        $('#processing-title').textContent=`Processing ${state.prospects.length} prospect${state.prospects.length===1?'':'s'}`;
+        $('#processing-subtitle').textContent='Results appear progressively as each prospect completes a stage.';
+        $('#icp-summary-value').textContent=formatIcpSummary(state.runIcp);
+        renderAll();
+        state.prospects.forEach((p,i)=>{
+          if(p.name==='Alex Morgan'){
+            state.timers.push(setTimeout(()=>advance(p,1),420));
+            state.timers.push(setTimeout(()=>failProspect(p,0,'LinkedIn profile could not be retrieved.'),1050));
+          } else if(p.name==='Sarah Lee') {
+            state.timers.push(setTimeout(()=>advance(p,1),350)); state.timers.push(setTimeout(()=>advance(p,2),760)); state.timers.push(setTimeout(()=>advance(p,3),1120));
+            state.timers.push(setTimeout(()=>failProspect(p,3,'Enrichment provider request failed.'),1750));
+          } else {
+            state.timers.push(setTimeout(()=>{
+              if(outcome===3){p.status='review';p.stage=2;p.qualification='Human Review';}
+              else if(outcome===4){p.status='rejected';p.stage=2;p.qualification='Reject';}
+              else {p.stage=3;advance(p,3,0); state.timers.push(setTimeout(()=>advance(p,4,0),900+i*140));state.timers.push(setTimeout(()=>advance(p,5,0),1800+i*140));state.timers.push(setTimeout(()=>advance(p,6,0),2700+i*140));state.timers.push(setTimeout(()=>finish(p),3600+i*140));}
+              renderAll();
+            },900+i*260));
+          }
+        });
+      };
+      const advance=(p,n,delay=0)=>{const timer=setTimeout(()=>{if(['complete','review','rejected','failed'].includes(p.status))return;p.stage=n;p.status='processing';renderAll();},delay);if(delay)state.timers.push(timer);};
+      const failProspect=(p,stage,error)=>{if(['complete','review','rejected'].includes(p.status))return;p.status='failed';p.stage=stage;p.failedStage=stage;p.failureReason=error;p.attempt=(p.attempt||0)+1;renderAll();};
+      const finish=p=>{if(['complete','review','rejected','failed'].includes(p.status))return;p.status='complete';p.stage=6;p.qualification='Pass';if(p.reviewFlow)p.reviewFlow+=' → Completed';if(!p.priority)p.priority='P2';if(!p.fit)p.fit='Good';if(!p.why)p.why='The prospect passed qualification and completed Phase 2 enrichment. Review the detailed signals to understand fit and timing.';if(!p.signals)p.signals=['ICP fit confirmed','Enrichment complete'];if(!p.positiveSignals)p.positiveSignals=p.signals;if(!p.negativeSignals)p.negativeSignals=['No material risks found'];if(!p.confidence)p.confidence=80;renderAll();};
+      const allData=()=>state.prospects;
+      const metric=(value,label)=>`<div class="metric"><div class="metric-value">${value}</div><div class="metric-label">${label}</div></div>`;
+      const stageSummary=()=>{
+        const all=allData(), total=all.length, reviews=all.filter(p=>p.status==='review').length, rejected=all.filter(p=>p.status==='rejected').length, failed=all.filter(p=>p.status==='failed').length, complete=all.filter(p=>p.status==='complete').length, phase2=all.filter(p=>p.stage>=3&&p.status!=='complete').length, processing=all.filter(p=>p.status==='processing').length, p1=all.filter(p=>p.stage>=1||p.status!=='queued').length, queued=all.filter(p=>p.status==='queued').length;
+        $('#metrics-grid').innerHTML=metric(total,'Prospects detected')+metric(p1,'Phase 1 enrichment complete')+metric(processing,'Currently processing')+metric(queued,'Queued')+metric(complete,'Completed')+metric(reviews,'Human review')+metric(rejected,'Rejected')+metric(failed,'Failed');
+        const stages=$$('.stage'); let active=Math.min(7,Math.floor((complete/Math.max(total,1))*7)+1); if(processing===0&&total)active=7;
+        stages.forEach((el,i)=>{el.classList.toggle('done',i<active);el.classList.toggle('active',i===active&&processing>0);});
+      };
+      const stageFor=p=>p.status==='review'||p.status==='rejected'?'Qualification':p.status==='complete'?'Complete':stages[Math.min(p.stage,stages.length-1)];
+      const renderProcessing=()=>{
+        stageSummary(); const rows=allData();
+        $('#processing-rows').innerHTML=rows.map((p,i)=>`<tr><td class="person-cell">${escapeHtml(p.name)}<small>${escapeHtml(p.title||'Prospect')}</small></td><td>${escapeHtml(stageFor(p))}${p.status==='failed'?`<small>${escapeHtml(p.failureReason)}</small>`:''}</td><td><span class="status ${p.status==='review'?'review':p.status==='complete'?'complete':p.status==='failed'?'failed':p.status==='rejected'?'rejected':p.status==='queued'?'queued':'processing'}">${p.status==='review'?'Human Review':p.status==='rejected'?'Rejected':p.status==='failed'?'Failed':p.status==='complete'?p.priority||'Completed':p.status==='queued'?'Queued':'Processing'}</span></td><td>${p.status==='failed'?`<button class="btn row-action" data-retry="${i}">Retry</button> <button class="btn btn-text row-action" data-detail="${i}">View Details</button>`:p.status==='complete'?`<button class="btn row-action" data-detail="${i}">View details</button>`:p.status==='review'?'Waiting for decision':p.status==='rejected'?'No further enrichment':'<span class="step-label">ENRICHING</span>'}</td></tr>`).join('');
+        $$('[data-detail]', $('#processing-rows')).forEach(b=>b.onclick=()=>openDetail(Number(b.dataset.detail)));
+        $$('[data-retry]', $('#processing-rows')).forEach(b=>b.onclick=()=>retryProspect(Number(b.dataset.retry)));
+      };
+      const counts=()=>({completed:allData().filter(p=>p.status==='complete').length,review:allData().filter(p=>p.status==='review').length,rejected:allData().filter(p=>p.status==='rejected').length,failed:allData().filter(p=>p.status==='failed').length});
+      const renderCompleted=()=>{
+        const list=allData().map((p,i)=>({...p,index:i})).filter(p=>p.status==='complete'&&(state.filter==='all'||p.priority===state.filter));
+        $('#completed-summary').textContent=`${counts().completed} qualified`;
+        $('#completed-list').innerHTML=list.length?list.map(p=>`<article class="result-card" data-od-id="prospect-${p.index}"><div><h3 class="result-name">${escapeHtml(p.name)}</h3><p class="result-sub">${escapeHtml(p.title)} — ${escapeHtml(p.company)}</p></div><div class="priority-wrap"><span class="priority ${p.priority.toLowerCase()}">${p.priority}</span><span class="fit">ICP fit · ${escapeHtml(p.fit)}</span></div><div class="why">${escapeHtml(p.why)}<div class="signal-row">${(p.signals||[]).map(s=>`<span class="signal">${escapeHtml(s)}</span>`).join('')}</div></div><button class="btn detail-link" data-detail="${p.index}" data-od-id="view-details-${p.index}">View Details</button></article>`).join(''):'<div class="empty-state"><strong>No completed prospects yet</strong>They’ll appear here progressively when qualification and enrichment finish.</div>';
+        $$('[data-detail]', $('#completed-list')).forEach(b=>b.onclick=()=>openDetail(Number(b.dataset.detail)));
+      };
+      const renderReview=()=>{
+        const list=allData().map((p,i)=>({...p,index:i})).filter(p=>p.status==='review');
+        $('#review-list').innerHTML=list.length?list.map(p=>`<article class="review-card" data-od-id="review-prospect-${p.index}"><div><h3 class="result-name">${escapeHtml(p.name)}</h3><p class="result-sub">${escapeHtml(p.title)}<br>${escapeHtml(p.company)}</p><div class="flow-state">${p.reviewFlow||'Human Review · Paused'}</div></div><div class="review-reason"><strong>Why we’re uncertain</strong>${escapeHtml(p.uncertainty||'Some profile or company signals need a person to confirm fit.')}</div><div class="review-reason"><strong>Relevant enriched data</strong>${escapeHtml(p.enriched||`${p.industry||'B2B SaaS'} · ${p.size||'Company size needs confirmation'} · ${p.location||'Location available'}`)}<div class="confidence">Confidence <b>${p.confidence||63}%</b></div></div><div class="review-actions"><button class="btn" data-review-action="approve" data-index="${p.index}">Approve</button><button class="btn reject-action" data-review-action="reject" data-index="${p.index}">Reject</button><button class="btn btn-text" data-detail="${p.index}">Details</button></div></article>`).join(''):'<div class="empty-state"><strong>All caught up</strong>Prospects that need a closer look will appear here.</div>';
+        $$('[data-review-action]', $('#review-list')).forEach(b=>b.onclick=()=>reviewAction(Number(b.dataset.index),b.dataset.reviewAction)); $$('[data-detail]', $('#review-list')).forEach(b=>b.onclick=()=>openDetail(Number(b.dataset.detail)));
+      };
+      const renderRejected=()=>{
+        const list=allData().map((p,i)=>({...p,index:i})).filter(p=>p.status==='rejected');
+        $('#rejected-list').innerHTML=list.length?list.map(p=>`<article class="result-card" data-od-id="rejected-prospect-${p.index}"><div><h3 class="result-name">${escapeHtml(p.name)}</h3><p class="result-sub">${escapeHtml(p.title)} — ${escapeHtml(p.company)}</p><div class="confidence">Confidence <b>${p.confidence||97}%</b></div></div><div class="priority-wrap"><span class="status failed">Rejected</span></div><div class="why"><b>Why they were rejected</b><br>${escapeHtml(p.rejectionReason||'Profile did not meet the defined ICP criteria.')}<div class="signal-row"><span class="signal">${escapeHtml(p.exclusionFlags||'ICP mismatch')}</span></div></div><button class="btn detail-link" data-override="${p.index}">Override &amp; Continue</button></article>`).join(''):'<div class="empty-state"><strong>No rejected prospects</strong>Prospects that miss the ICP criteria will be listed here.</div>';
+        $$('[data-override]', $('#rejected-list')).forEach(b=>b.onclick=()=>overrideProspect(Number(b.dataset.override)));
+      };
+      const renderAll=()=>{renderProcessing();renderCompleted();renderReview();renderRejected();const c=counts();['completed','review','rejected'].forEach(k=>$(`#count-${k}`).textContent=c[k]);};
+      const switchTab=tab=>{state.tab=tab;$$('[data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===tab)));['completed','review','rejected'].forEach(k=>$(`#content-${k}`).hidden=k!==tab);};
+      const resumePhase2=(p)=>{setTimeout(()=>{if(p.status!=='queued')return;p.status='processing';p.reviewFlow+=' → Processing';renderAll();setTimeout(()=>finish(p),2000);},750);};
+      const retryProspect=index=>{const p=allData()[index];if(!p||p.status!=='failed')return;const failedStage=p.failedStage;p.status='queued';p.stage=failedStage;p.failureReason='';p.reviewFlow=(p.reviewFlow?`${p.reviewFlow} → `:'')+`${stages[failedStage]} Queued`;toast(`${p.name} retrying ${stages[failedStage]}`);renderAll();state.timers.push(setTimeout(()=>{if(p.status!=='queued')return;p.status='processing';p.reviewFlow+=` → ${stages[failedStage]} Processing`;renderAll();state.timers.push(setTimeout(()=>{if(p.status!=='processing')return;const remaining=failedStage<2?[failedStage+1,2,3,4,5,6]:[4,5,6];remaining.forEach((stage,step)=>state.timers.push(setTimeout(()=>advance(p,stage),450*(step+1))));state.timers.push(setTimeout(()=>finish(p),450*(remaining.length+1)));},600));},600));};
+      const reviewAction=(index,action)=>{const p=allData()[index];if(!p)return;if(action==='approve'){p.status='queued';p.stage=3;p.reviewFlow='Approved → Phase 2 Queued';p.qualification='Pass';p.priority='P2';p.fit='Review approved';p.why='Approved by a human reviewer. Phase 2 enrichment is underway to establish a final priority.';p.signals=['Human approved','Phase 2 enrichment queued'];p.positiveSignals=p.signals;p.negativeSignals=[];toast(`${p.name} approved · queued for Phase 2`);resumePhase2(p);}else{p.status='rejected';p.rejectionReason='Rejected during human review after checking the available fit signals.';p.qualification='Reject';p.confidence=90;toast(`${p.name} rejected`);}renderAll();};
+      const overrideProspect=index=>{const p=allData()[index];if(!p)return;p.status='queued';p.stage=3;p.reviewFlow='Manual Override → Phase 2 Queued';p.priority='P3';p.fit='Override';p.why='Manually overridden after Phase 1. Deeper enrichment is complete; review the limited fit signals before outreach.';p.signals=['Manually overridden','Phase 2 enrichment'];p.positiveSignals=p.signals;p.negativeSignals=[p.exclusionFlags||'Initial ICP mismatch'];p.qualification='Pass';toast(`${p.name} overridden · queued for Phase 2`);renderAll();resumePhase2(p);};
+      const toast=message=>{const t=$('#toast');t.textContent=message;t.hidden=false;clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>t.hidden=true,2800);};
+      const kv=(label,value)=>`<div class="kv"><span>${escapeHtml(label)}</span><b>${escapeHtml(value||'—')}</b></div>`;
+      const detailBlock=(title,content,open=false)=>`<details class="detail-block" ${open?'open':''}><summary>${title}</summary><div class="detail-body">${content}</div></details>`;
+      const openDetail=index=>{
+        const p=allData()[index];if(!p)return;$('#drawer-title').textContent=p.name;$('#drawer-subtitle').textContent=`${p.title||'Prospect'} · ${p.company||'Company pending'}`;
+        const phase1=p.phase1Raw||{profileUrl:p.url,source:'Mock enrichment provider',headline:`${p.title||'Role pending'} at ${p.company||'Company pending'}`};
+        const phase2=p.phase2Raw||{funding:'Awaiting Phase 2',hiring:'Awaiting Phase 2',headcountTrend:'Awaiting Phase 2',technologies:[],events:[]};
+        const pipeline=`<div class="pipeline-track"><span class="pipe-step done">Input</span><span class="pipe-step ${p.status==='failed'&&p.failedStage<2?'current':'done'}">Phase 1</span><span class="pipe-step ${p.status==='review'||p.status==='rejected'||(p.status==='failed'&&p.failedStage===2)?'current':'done'}">Qualification</span><span class="pipe-step ${p.status==='failed'&&p.failedStage>=3?'current':p.stage>=3?'done':''}">Phase 2</span><span class="pipe-step ${p.status==='complete'?'done':''}">Priority</span></div>`;
+        const input=kv('Name',p.name)+kv('LinkedIn URL',p.url);
+        const normal=kv('Job title',p.title)+kv('Department',p.department)+kv('Seniority',p.seniority)+kv('Location',p.location)+kv('Company',p.company)+kv('Industry',p.industry)+kv('Company size',p.size)+kv('Company type',p.companyType)+kv('Company location',p.companyLocation);
+        const qualify=kv('Decision',p.qualification||'In progress')+kv('Person fit',p.personFit||p.fit)+kv('Company fit',p.companyFit||p.fit)+kv('Exclusion flags',p.exclusionFlags)+kv('Reason',p.why||p.uncertainty)+kv('Confidence',p.confidence?`${p.confidence}%`:'Pending');
+        const signal=kv('Headcount growth',phase2.headcountTrend)+kv('Hiring activity',phase2.hiring)+kv('Funding',phase2.funding)+kv('Revenue / growth',phase2.revenue||'Not found in mock sources')+kv('Technology signals',(phase2.technologies||[]).join(', '))+kv('Company events',(phase2.events||[]).join('; '))+kv('Timing / intent',phase2.timing||'No active intent signal');
+        const priority=kv('Final priority',p.priority||'Pending')+kv('Explanation',p.why)+kv('Positive signals',(p.positiveSignals||p.signals||[]).join(' · '))+kv('Negative signals',(p.negativeSignals||[]).join(' · '))+kv('Confidence',p.confidence?`${p.confidence}%`:'Pending');
+        const failure=p.status==='failed'?`<div class="failure-callout" style="margin:0 0 11px"><p><strong>${escapeHtml(stages[p.failedStage])}</strong>Status: Failed<br>Error: ${escapeHtml(p.failureReason)}<br>Attempt: ${p.attempt||1}</p><button class="btn row-action" data-drawer-retry="${index}">Retry</button></div>`:'';
+        $('#drawer-content').innerHTML=pipeline+failure+detailBlock('Input',`<div class="kv-grid">${input}</div>`,true)+detailBlock('Phase 1 · Raw enrichment',`<pre>${escapeHtml(JSON.stringify(phase1,null,2))}</pre>`)+detailBlock('Phase 1 · Normalised data',`<div class="kv-grid">${normal}</div>`)+detailBlock('Qualification decision',`<div class="kv-grid">${qualify}</div>`,true)+detailBlock('Phase 2 · Raw enrichment',`<pre>${escapeHtml(JSON.stringify(phase2,null,2))}</pre>`)+detailBlock('Phase 2 · Normalised signals',`<div class="kv-grid">${signal}</div>`)+detailBlock('Final priority',`<div class="kv-grid">${priority}</div>`,p.status==='complete');
+        $('[data-drawer-retry]',$('#drawer-content'))?.addEventListener('click',()=>{closeDrawer();retryProspect(index);});
+        $('#drawer-backdrop').hidden=false;document.body.style.overflow='hidden';$('#close-drawer').focus();
+      };
+      const closeDrawer=()=>{$('#drawer-backdrop').hidden=true;document.body.style.overflow='';};
+      $('#add-prospect').addEventListener('click',addSingle); $('#prospect-url').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addSingle();}});
+      $$('[data-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+      $$('[data-icp]').forEach(el=>el.addEventListener('input',updateScoreButton)); $('#exclusions').addEventListener('input',updateScoreButton);
+      $('#csv-file').addEventListener('change',e=>addCsvFile(e.target.files[0]));
+      const dz=$('#drop-zone'); ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('dragging');})); ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('dragging');})); dz.addEventListener('drop',e=>addCsvFile(e.dataTransfer.files[0]));
+      $('#score-button').addEventListener('click',startRun);
+      $$('[data-tab]').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+      $$('[data-filter]').forEach(b=>b.addEventListener('click',()=>{state.filter=b.dataset.filter;$$('[data-filter]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));renderCompleted();}));
+      $('#approve-all').addEventListener('click',()=>{allData().map((p,i)=>p.status==='review'?i:-1).filter(i=>i>=0).forEach(i=>reviewAction(i,'approve'));});
+      $('#reject-all').addEventListener('click',()=>{allData().map((p,i)=>p.status==='review'?i:-1).filter(i=>i>=0).forEach(i=>reviewAction(i,'reject'));});
+      $('#new-run').addEventListener('click',()=>{state.timers.forEach(clearTimeout);state.timers=[];state.prospects=[];state.csv=[];state.runIcp=null;state.mode='single';state.tab='completed';state.filter='all';$('#processing-section').hidden=true;$('#results-section').hidden=true;$('#single-mode').hidden=false;$('#csv-mode').hidden=true;$$('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode==='single')));$$('[data-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.filter==='all')));$('#csv-summary').classList.remove('visible');$('#csv-prospect-list').innerHTML='';renderProspectInputs();updateScoreButton();window.scrollTo({top:$('#workspace').offsetTop-20,behavior:'smooth'});toast('New run ready — ICP criteria retained');});
+      $('#close-drawer').addEventListener('click',closeDrawer); $('#drawer-backdrop').addEventListener('click',e=>{if(e.target===$('#drawer-backdrop'))closeDrawer();}); document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#drawer-backdrop').hidden)closeDrawer();});
+      // Load a clear demo path without pre-filling the initially blank ICP form.
+      const demoButton=document.createElement('button'); demoButton.className='btn btn-text'; demoButton.type='button'; demoButton.textContent='Load demo setup'; demoButton.setAttribute('data-od-id','load-demo-setup'); $('.panel-head', $('#icp-title').closest('.panel')).append(demoButton);
+      demoButton.addEventListener('click',()=>{
+        $('#company-size').value='201–1,000 employees';$('#industry').value='B2B SaaS / AI';$('#department').value='Revenue Operations / GTM';$('#seniority').value='Director and above';$('#geography').value='United States and Canada';$('#exclusions').value='Retail, agencies, individual contributors';
+        state.prospects=[
+          {name:'Alex Morgan',url:'https://www.linkedin.com/in/alex-morgan-revops'},
+          {name:'Sam Rivera',url:'https://www.linkedin.com/in/sam-rivera-revenue'},
+          {name:'Taylor Chen',url:'https://www.linkedin.com/in/taylor-chen'},
+          {name:'Priya Nair',url:'https://www.linkedin.com/in/priya-nair-growth'},
+          {name:'Casey Patel',url:'https://www.linkedin.com/in/casey-patel-gtm'},
+          {name:'Sarah Lee',url:'https://www.linkedin.com/in/sarah-lee-revops'}
+        ];renderProspectInputs();updateScoreButton();toast('Demo ICP and six sample prospects loaded');
+      });
+      updateScoreButton();
+    })();
+  </script>
+</body>
+</html>

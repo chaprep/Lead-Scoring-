@@ -1,0 +1,20 @@
+# Only application runtime/build inputs enter the Docker context.
+**
+!Dockerfile
+!pyproject.toml
+!README.md
+!requirements.txt
+!app/
+!app/**
+!alembic/
+!alembic/**
+!alembic.ini
+!Leadscorefrontend/
+!Leadscorefrontend/lead-scoring-prioritisation-system.html
+**/__pycache__/
+**/*.py[cod]
+
+# Never copy nested credentials, even if they are placed under app/.
+**/.env*
+**/*.pem
+**/*.key

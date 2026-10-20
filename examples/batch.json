@@ -1,0 +1,53 @@
+{
+  "icp": {
+    "company_size_min": 201,
+    "company_size_max": 1000,
+    "industries": [
+      "B2B software"
+    ],
+    "company_types": [
+      "SaaS"
+    ],
+    "departments": [
+      "Revenue Operations"
+    ],
+    "seniorities": [
+      "Director",
+      "VP"
+    ],
+    "geographies": [
+      "United States",
+      "Canada"
+    ],
+    "exclusions": [
+      "agencies",
+      "consultancies"
+    ]
+  },
+  "prospects": [
+    {
+      "name": "Alex Morgan",
+      "linkedin_url": "https://www.linkedin.com/in/demo-alex-morgan"
+    },
+    {
+      "name": "Sam Rivera",
+      "linkedin_url": "https://www.linkedin.com/in/demo-sam-rivera"
+    },
+    {
+      "name": "Jordan Lee",
+      "linkedin_url": "https://www.linkedin.com/in/demo-jordan-lee"
+    },
+    {
+      "name": "Nina Patel",
+      "linkedin_url": "https://www.linkedin.com/in/demo-nina-patel"
+    },
+    {
+      "name": "Lena Chen",
+      "linkedin_url": "https://www.linkedin.com/in/demo-lena-chen"
+    },
+    {
+      "name": "Omar Davis",
+      "linkedin_url": "https://www.linkedin.com/in/demo-omar-davis"
+    }
+  ]
+}

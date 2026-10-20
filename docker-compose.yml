@@ -1,0 +1,133 @@
+name: leadscoringbackend
+
+x-app: &app
+  build: .
+  image: lead-scoring-local:0.1.0
+  init: true
+  environment: &app-env
+    APP_ENV: development
+    # Fresh downloads never call paid providers unless live mode is selected.
+    APP_MODE: ${APP_MODE:-demo}
+    DATABASE_URL: postgresql+psycopg://leadscoring:leadscoring@postgres:5432/leadscoring
+    REDIS_URL: redis://redis:6379/0
+    CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+    PROFILE_PROVIDER: apify
+    QUALIFICATION_PROVIDER: jev
+    APIFY_API_KEY: ${APIFY_API_KEY:-}
+    APIFY_PROFILE_ACTOR_ID: ${APIFY_PROFILE_ACTOR_ID:-AgfKk0sQQxkpQJ1Dt}
+    APIFY_REQUEST_TIMEOUT_SECONDS: ${APIFY_REQUEST_TIMEOUT_SECONDS:-20}
+    APIFY_RUN_TIMEOUT_SECONDS: ${APIFY_RUN_TIMEOUT_SECONDS:-180}
+    APIFY_POLL_INTERVAL_SECONDS: ${APIFY_POLL_INTERVAL_SECONDS:-2}
+    OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+    JEV_MODEL: ${JEV_MODEL:-typesafe/jev-1.13}
+    JEV_REQUEST_TIMEOUT_SECONDS: ${JEV_REQUEST_TIMEOUT_SECONDS:-30}
+    COMPANY_ENRICH_API_KEY: ${COMPANY_ENRICH_API_KEY:-}
+    COMPANY_ENRICH_REQUEST_TIMEOUT_SECONDS: ${COMPANY_ENRICH_REQUEST_TIMEOUT_SECONDS:-45}
+    PRIORITIZATION_MODEL: ${PRIORITIZATION_MODEL:-openai/gpt-6-luna}
+    PRIORITIZATION_REASONING_EFFORT: ${PRIORITIZATION_REASONING_EFFORT:-medium}
+    PRIORITIZATION_REQUEST_TIMEOUT_SECONDS: ${PRIORITIZATION_REQUEST_TIMEOUT_SECONDS:-45}
+    SIGNALHIRE_API_KEY: ${SIGNALHIRE_API_KEY:-}
+    SIGNALHIRE_CALLBACK_BASE_URL: ${SIGNALHIRE_CALLBACK_BASE_URL:-}
+    SIGNALHIRE_REQUEST_TIMEOUT_SECONDS: ${SIGNALHIRE_REQUEST_TIMEOUT_SECONDS:-30}
+    INTERNAL_API_KEY: ${INTERNAL_API_KEY:-}
+    CELERY_WORKER_CONCURRENCY: ${CELERY_WORKER_CONCURRENCY:-2}
+    PHASE1_MAX_CONCURRENCY: ${PHASE1_MAX_CONCURRENCY:-4}
+    PHASE2_MAX_CONCURRENCY: ${PHASE2_MAX_CONCURRENCY:-4}
+    COMPANY_PROVIDER_MAX_CONCURRENCY: ${COMPANY_PROVIDER_MAX_CONCURRENCY:-2}
+    CONTACT_PROVIDER_MAX_CONCURRENCY: ${CONTACT_PROVIDER_MAX_CONCURRENCY:-2}
+    LLM_MAX_CONCURRENCY: ${LLM_MAX_CONCURRENCY:-2}
+    CONTACT_CALLBACK_TIMEOUT_SECONDS: ${CONTACT_CALLBACK_TIMEOUT_SECONDS:-900}
+    MAX_RETRY_ATTEMPTS: ${MAX_RETRY_ATTEMPTS:-3}
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  security_opt:
+    - no-new-privileges:true
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: leadscoring
+      POSTGRES_USER: leadscoring
+      POSTGRES_PASSWORD: leadscoring
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U leadscoring -d leadscoring"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  migrate:
+    <<: *app
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+
+  api:
+    <<: *app
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import json,urllib.request; assert json.load(urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3))['status'] == 'ok'"]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 12
+    restart: unless-stopped
+
+  worker:
+    <<: *app
+    command: ["celery", "-A", "app.workers.celery_app", "worker", "--loglevel=info", "--hostname=worker@%h", "--queues=workflow.v2"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.workers.celery_app inspect ping --destination worker@$$HOSTNAME --timeout=5"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 5
+    restart: unless-stopped
+
+  coordinator:
+    <<: *app
+    command: ["python", "-m", "app.workers.coordinator"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
